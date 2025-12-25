@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
-import { Mail, Key, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { api } from '../api';
 
 interface LoginProps {
   onBack: () => void;
@@ -28,12 +28,8 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegisterClick, onLoginSuccess, 
     setError(null);
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      if (!userCredential.user.emailVerified) {
-        setError("Please verify your email address.");
-      } else {
-        onLoginSuccess();
-      }
+      await api.login(formData);
+      onLoginSuccess();
     } catch (err: any) {
       setError(err.message || "Invalid credentials.");
     } finally {
@@ -42,49 +38,34 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegisterClick, onLoginSuccess, 
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center py-8 md:py-12 px-4 md:px-6 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center py-8 md:py-12 px-4 md:px-6 relative">
       <div className="mb-6 md:mb-8 z-10">
         <button onClick={onBack}><img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png" alt="Tesla" className="h-10 md:h-12 tesla-red-filter hover:scale-105 transition" /></button>
       </div>
       <div className="w-full max-w-[700px] glass-card p-6 md:p-16 rounded-[2rem] border border-white/10 z-10 text-center shadow-2xl animate-in fade-in zoom-in duration-500">
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-2 tracking-tight uppercase text-white leading-tight">Tesla Investment</h1>
+        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-2 uppercase leading-tight">Tesla Investment</h1>
         <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-12">Login to Account</p>
+        
+        {error && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-bold uppercase tracking-widest text-left">{error}</div>}
+
         <form onSubmit={handleLogin} className="space-y-6 md:space-y-8 text-left max-w-sm mx-auto">
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Email Address</label>
-            <input 
-              required 
-              name="email" 
-              type="email" 
-              value={formData.email} 
-              onChange={handleInputChange} 
-              className="w-full bg-[#1c1c1c] border border-white/5 rounded-xl py-4 px-6 text-sm text-white font-medium focus:outline-none focus:border-amber-500/30 transition shadow-inner" 
-            />
+            <input required name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full bg-[#1c1c1c] border border-white/5 rounded-xl py-4 px-6 text-sm text-white font-medium focus:outline-none focus:border-amber-500/30 shadow-inner" />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Password</label>
             <div className="relative">
-              <input 
-                required 
-                name="password" 
-                type={showPassword ? "text" : "password"} 
-                value={formData.password} 
-                onChange={handleInputChange} 
-                className="w-full bg-[#1c1c1c] border border-white/5 rounded-xl py-4 px-6 text-sm text-white font-medium focus:outline-none focus:border-amber-500/30 transition shadow-inner pr-12" 
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
-              >
+              <input required name="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleInputChange} className="w-full bg-[#1c1c1c] border border-white/5 rounded-xl py-4 px-6 text-sm text-white font-medium focus:outline-none focus:border-amber-500/30 pr-12 shadow-inner" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
             <label className="flex items-center gap-2 cursor-pointer group">
-              <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/20" />
-              <span className="text-[9px] font-bold text-gray-400 uppercase group-hover:text-white transition">Remember</span>
+              <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500" />
+              <span className="text-[9px] font-bold text-gray-400 uppercase transition group-hover:text-white">Remember</span>
             </label>
             <button type="button" onClick={onForgetPasswordClick} className="text-[9px] font-bold text-orange-400 uppercase tracking-widest hover:underline">Forgot?</button>
           </div>

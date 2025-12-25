@@ -3,7 +3,7 @@ export const API_URL = ''; // Relative path for the server
 
 export const api = {
   getToken: () => localStorage.getItem('tesla_token'),
-  setToken: (token: string) => localStorage.getItem('tesla_token'),
+  setToken: (token: string) => localStorage.setItem('tesla_token', token),
   removeToken: () => localStorage.removeItem('tesla_token'),
 
   async request(endpoint: string, options: RequestInit = {}) {
@@ -19,10 +19,26 @@ export const api = {
       headers,
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Something went wrong');
+    // Check if there's content to parse
+    const contentType = response.headers.get("content-type");
+    let data = null;
+    
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error("Failed to parse JSON response", e);
+      }
+    } else {
+      // Handle non-JSON response (like plain text error messages)
+      const text = await response.text();
+      data = { message: text };
     }
+
+    if (!response.ok) {
+      throw new Error(data?.message || `Server error: ${response.status}`);
+    }
+    
     return data;
   },
 
@@ -31,7 +47,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-    if (data.token) localStorage.setItem('tesla_token', data.token);
+    if (data.token) this.setToken(data.token);
     return data;
   },
 
@@ -60,7 +76,7 @@ export const api = {
     });
   },
 
-  async verifyEmail(token: string) {
-    return this.request(`/api/verify-email?token=${token}`);
+  async verifyEmail(email: string) {
+    return this.request(`/api/verify-email?email=${encodeURIComponent(email)}`);
   }
 };

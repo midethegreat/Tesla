@@ -68,10 +68,13 @@ app.post('/api/register', async (req, res) => {
 
   db.users.push(newUser);
   
-  // In a real app, send verification email here
-  console.log(`Verification link for ${email}: /verify-email?token=token_${newUser.id}`);
+  // Demo auto-verify link for testing purposes
+  console.log(`Verification link: /api/verify-email?email=${email}`);
 
-  res.status(201).json({ message: 'User registered. Please verify your email.' });
+  res.status(201).json({ 
+    message: 'User registered. Please verify your email.',
+    email: email // Returning email so frontend can show/use it for the demo verify
+  });
 });
 
 app.post('/api/login', async (req, res) => {
@@ -83,8 +86,6 @@ app.post('/api/login', async (req, res) => {
   }
 
   if (!user.emailVerified) {
-    // For demo purposes, we'll auto-verify on first login attempt if requested, 
-    // or just return an error. Let's stick to the flow.
     return res.status(403).json({ message: 'Please verify your email address first.' });
   }
 
@@ -100,7 +101,8 @@ app.get('/api/me', authenticateToken, (req, res) => {
 app.put('/api/profile', authenticateToken, (req, res) => {
   const userIndex = db.users.findIndex(u => u.id === req.user.id);
   db.users[userIndex].profile = { ...db.users[userIndex].profile, ...req.body };
-  res.json({ message: 'Profile updated', user: db.users[userIndex] });
+  const { password, ...updatedUser } = db.users[userIndex];
+  res.json({ message: 'Profile updated', user: updatedUser });
 });
 
 app.post('/api/reset-password', (req, res) => {
@@ -112,15 +114,15 @@ app.post('/api/reset-password', (req, res) => {
   res.json({ message: 'If an account exists, a reset link has been sent.' });
 });
 
-// Demo route to verify email manually
+// Returns JSON instead of plain text to satisfy frontend JSON parsing
 app.get('/api/verify-email', (req, res) => {
   const { email } = req.query;
   const user = db.users.find(u => u.email === email);
   if (user) {
     user.emailVerified = true;
-    return res.send('Email verified! You can now login.');
+    return res.json({ message: 'Email verified! You can now login.' });
   }
-  res.status(404).send('User not found');
+  res.status(404).json({ message: 'User not found' });
 });
 
 // Start server

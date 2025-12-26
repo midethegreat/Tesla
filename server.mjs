@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || (process.env.NODE_ENV === 'production' ? 5000 : 3001)
 const JWT_SECRET = process.env.JWT_SECRET || "tesla-investment-secret-key-change-in-production"
 
 const DB_PATH = path.join(__dirname, "data", "db.json")
@@ -24,13 +24,14 @@ if (!fsSync.existsSync(uploadsDir)) {
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000"],
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }))
 app.use(express.json())
 app.use(express.static("public"))
+app.use(express.static("dist"))
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -646,7 +647,12 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" })
 })
 
-app.listen(PORT, () => {
-  console.log(`[v0] Server running on http://localhost:${PORT}`)
-  console.log(`[v0] API available at http://localhost:${PORT}/api`)
+// Serve SPA for all other routes in production
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"))
+})
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`[v0] Server running on http://0.0.0.0:${PORT}`)
+  console.log(`[v0] API available at http://0.0.0.0:${PORT}/api`)
 })

@@ -1,4 +1,3 @@
-
 import { InvestmentPlan, FAQItem, ProcessStep } from './types';
 
 export const INVESTMENT_PLANS: InvestmentPlan[] = [

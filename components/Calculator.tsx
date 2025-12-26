@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calculator as CalcIcon, Coins, TrendingUp } from 'lucide-react';
 import { INVESTMENT_PLANS } from '../constants';

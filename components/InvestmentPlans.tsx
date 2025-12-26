@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MousePointer2, Briefcase, RefreshCw, Clock, Wallet, Ban, Zap } from 'lucide-react';
 import { INVESTMENT_PLANS } from '../constants';

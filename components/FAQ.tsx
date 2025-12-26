@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { FAQ_ITEMS } from '../constants';

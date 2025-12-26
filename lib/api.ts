@@ -1,3 +1,5 @@
+import { process } from "process"
+
 export async function apiRequest(endpoint: string, options?: RequestInit) {
   const token = localStorage.getItem("authToken")
   const headers: HeadersInit = {
@@ -10,8 +12,11 @@ export async function apiRequest(endpoint: string, options?: RequestInit) {
   }
 
   try {
-    console.log("[v0] Making API request to:", endpoint)
-    const response = await fetch(endpoint, {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+    const fullUrl = endpoint.startsWith("http") ? endpoint : `${baseUrl}${endpoint}`
+
+    console.log("[v0] Making API request to:", fullUrl)
+    const response = await fetch(fullUrl, {
       ...options,
       headers,
       credentials: "include",

@@ -17,7 +17,14 @@ const DB_PATH = path.join(__dirname, "data", "db.json")
 const UPLOADS_PATH = path.join(__dirname, "public", "uploads")
 
 // Middleware
-app.use(cors())
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL || "*" : "*",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // Database helpers

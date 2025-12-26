@@ -8,174 +8,222 @@ Your application consists of:
 - **Frontend**: Next.js application (React with TypeScript)
 - **Backend**: Express.js REST API server
 
-## Part 1: Deploy Backend to Railway (Recommended)
+## Part 1: Deploy Backend to Render (FREE)
+
+Render.com offers a generous free tier perfect for Express backends.
 
 ### Step 1: Prepare Your Repository
 
 1. Ensure your project is on GitHub
 2. Make sure all code is committed and pushed
-3. Create a `.env.production` file in the root (if not already present)
+3. Verify `package.json` has the correct start script: `"start": "node server.mjs"`
 
-### Step 2: Set Up Railway
+### Step 2: Set Up Render
 
-1. Go to [https://railway.app](https://railway.app)
-2. Sign up with GitHub
-3. Click "New Project" → "Deploy from GitHub repo"
-4. Select your repository
-5. Railway will auto-detect it's a Node.js project
+1. Go to [https://render.com](https://render.com)
+2. Sign up with GitHub (click "GitHub" button)
+3. Click "New +" → "Web Service"
+4. Select your GitHub repository
+5. Click "Connect"
 
-### Step 3: Configure Environment Variables
+### Step 3: Configure the Web Service
 
-1. In the Railway project dashboard, go to **Variables**
-2. Add these environment variables:
+In the deployment form, fill in:
 
-```
-PORT=5000
-JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters
-```
+- **Name**: `tesla-backend` (or your preferred name)
+- **Environment**: `Node`
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Instance Type**: Select `Free` (free tier)
 
-3. Railway automatically uses `npm start` (which runs `node server.mjs`)
+### Step 4: Add Environment Variables
 
-### Step 4: Deploy
+1. Scroll down to **Environment Variables** section
+2. Add these variables:
 
-1. Click "Deploy" - Railway will build and deploy automatically
-2. Wait for the deployment to complete (usually 2-3 minutes)
-3. Copy your backend URL from the Railway dashboard (e.g., `https://my-backend-prod.up.railway.app`)
+| Key | Value |
+|-----|-------|
+| `PORT` | `5000` |
+| `JWT_SECRET` | Generate a secure random string (e.g., use [generate-random.org](https://www.random.org/strings/)) - minimum 32 characters |
+| `NODE_ENV` | `production` |
+| `FRONTEND_URL` | Leave blank for now - you'll update after Vercel deployment |
 
-## Part 2: Deploy Frontend to Vercel
+**Important**: Do NOT use the default JWT_SECRET in production. Generate a secure one.
+
+### Step 5: Deploy
+
+1. Click "Create Web Service"
+2. Render will build and deploy automatically (2-5 minutes)
+3. Once deployment completes, you'll see a green checkmark
+4. Copy your backend URL from the top (looks like: `https://tesla-backend-xxxx.onrender.com`)
+
+⚠️ **Free tier note**: Render's free tier spins down after 15 minutes of inactivity. First request after spin-down takes ~30 seconds. For production, upgrade to paid tier.
+
+## Part 2: Deploy Frontend to Vercel (FREE)
 
 ### Step 1: Connect Vercel
 
 1. Go to [https://vercel.com](https://vercel.com)
 2. Sign in with GitHub
 3. Click "Add New" → "Project"
-4. Import your GitHub repository
+4. Select and import your GitHub repository
 5. Framework will auto-detect as "Next.js"
 
 ### Step 2: Configure Environment Variables
 
-1. In the Vercel project settings, go to **Environment Variables**
-2. Add this variable (replace with your Railway backend URL):
+1. In the "Environment Variables" section, add:
 
-```
-NEXT_PUBLIC_API_URL=https://your-backend-url.up.railway.app
-```
+| Key | Value |
+|-----|-------|
+| `NEXT_PUBLIC_API_URL` | Paste your Render backend URL (e.g., `https://tesla-backend-xxxx.onrender.com`) |
 
-For example:
-```
-NEXT_PUBLIC_API_URL=https://tesla-backend-prod.up.railway.app
-```
+The variable must start with `NEXT_PUBLIC_` to be accessible in the browser.
 
 ### Step 3: Deploy
 
 1. Click "Deploy"
-2. Vercel will build and deploy automatically (usually 1-2 minutes)
+2. Vercel will build and deploy automatically (1-2 minutes)
 3. You'll get a URL like `https://your-app-name.vercel.app`
 
-## Part 3: Verify Communication
+## Part 3: Update Backend Configuration
+
+Now that your frontend is deployed, update the backend to allow only your frontend domain:
+
+1. Go back to Render dashboard
+2. Click on your `tesla-backend` service
+3. Go to **Environment** tab
+4. Edit `FRONTEND_URL` and set it to your Vercel URL:
+   ```
+   https://your-app-name.vercel.app
+   ```
+5. Click "Save Changes" - this will trigger a redeployment
+
+## Part 4: Verify Communication
 
 Once both are deployed:
 
-1. **Test the frontend**: Open your Vercel URL in a browser
-2. **Test registration**: Try to create a new account
-3. **Check backend logs**: Go to Railway dashboard → Logs tab to verify requests are received
-4. **Test login**: Verify you can log in with the account you created
+1. **Open your app**: Visit your Vercel URL in a browser
+2. **Test registration**: Create a new account
+3. **Check backend logs**: 
+   - Go to Render dashboard → select `tesla-backend`
+   - Click "Logs" tab to see if requests are being received
+4. **Test login**: Log in with the account you just created
 
-## Updating Configuration
-
-If you need to change your backend URL later:
-
-1. In Vercel dashboard, go to **Settings** → **Environment Variables**
-2. Update `NEXT_PUBLIC_API_URL`
-3. Redeploy by pushing to GitHub or clicking "Redeploy" in Vercel
+If everything works, you should see API requests in the Render logs.
 
 ## Troubleshooting
 
-### "Failed to connect to server" Error
+### "Failed to connect to server" or "Network Error"
 
-This means the frontend can't reach the backend. Check:
+**Check these:**
 
-1. Backend URL is correct in \`NEXT_PUBLIC_API_URL\`
-2. Backend is running and deployed on Railway
-3. CORS is enabled on backend (it is - we have `cors()` middleware)
-4. No typos in the URL
+1. Backend URL is correct in `NEXT_PUBLIC_API_URL` on Vercel
+2. Backend is deployed and running on Render (check status)
+3. URL includes `https://` (not `http://`)
+4. Wait 30 seconds if it's the first request to a free tier backend (it spins up)
 
-### Backend Not Receiving Requests
+**Debug:**
+1. Open your Vercel app in browser
+2. Open DevTools → Network tab
+3. Try to register/login
+4. Look for failed API requests
+5. Check the exact URL it's trying to reach
 
-1. Check Railway logs for errors
-2. Verify `NEXT_PUBLIC_API_URL` environment variable is set in Vercel
-3. Check that the URL includes `https://` (not `http://`)
+### "Connection Refused" or "Backend is Down"
 
-### Database/Login Issues
+1. Go to your Render dashboard
+2. Check if the service shows a green checkmark (deployed)
+3. If not, check the "Build" logs for errors
+4. Verify start command is `npm start`
 
-1. Backend uses JSON file database (`data/db.json`) which is recreated on each Railway deployment
-2. To persist data, consider migrating to a proper database:
-   - Railway offers free PostgreSQL
-   - Or use Supabase for managed PostgreSQL
+### "CORS Error"
 
-## Alternative Deployment Options
+This means backend is blocking your frontend domain.
 
-### Deploy to Render
+1. Check that `FRONTEND_URL` is set correctly on Render
+2. Go to `server.ts` and verify CORS middleware is present
+3. Redeploy backend after changing `FRONTEND_URL`
 
-1. Go to [https://render.com](https://render.com)
-2. Create new **Web Service**
-3. Connect GitHub repository
-4. Settings:
-   - Build command: \`npm install\`
-   - Start command: \`npm start\`
-5. Add environment variables
-6. Deploy
+### First Request is Slow
 
-### Deploy to Heroku
+Free tier backends spin down after 15 minutes of inactivity. First request wakes them up (~30 seconds). This is normal for free tier.
 
-1. Install Heroku CLI: \`npm install -g heroku\`
-2. \`heroku login\`
-3. \`heroku create your-app-name\`
-4. \`heroku config:set JWT_SECRET=your-secret-key\`
-5. \`git push heroku main\`
-6. Get URL: \`heroku apps:info\`
+## Updating Your App
+
+### Update Backend
+
+1. Make changes to your code
+2. Commit and push to GitHub
+3. Render automatically redeploys when you push (if configured with GitHub integration)
+
+### Update Frontend
+
+1. Make changes to your code
+2. Commit and push to GitHub
+3. Vercel automatically redeploys when you push
+
+## Upgrading from Free Tier
+
+### Render Backend Upgrade
+
+- Free: $0/month (spins down after 15 minutes)
+- Starter: $7/month (always running)
+
+To upgrade: Go to Render dashboard → Pricing tab
+
+### Vercel Frontend Upgrade
+
+- Free: $0/month (sufficient for most apps)
+- Pro: $20/month (more advanced features)
+
+Vercel free tier is excellent and rarely needs upgrade unless you need advanced features.
 
 ## Database Persistence
 
 Currently, the backend uses a JSON file (`data/db.json`) for data storage. This works but:
 
-- Data is lost when Railway restarts (usually weekly)
-- Not suitable for production with concurrent users
+- Data is lost when Render restarts
+- Not suitable for concurrent users
 
-To use a persistent database:
+### Add Render PostgreSQL (FREE)
 
-1. **Add PostgreSQL on Railway**:
-   - In Railway dashboard, click "Add" → "PostgreSQL"
-   - Update backend to use PostgreSQL connection string
+1. In Render dashboard, click "New +" → "PostgreSQL"
+2. Select free tier database
+3. Get connection string
+4. Update backend to use PostgreSQL
 
-2. **Or use Supabase**:
-   - Create account at [https://supabase.com](https://supabase.com)
-   - Get PostgreSQL connection string
-   - Update backend database code
+### Or Use Supabase (FREE PostgreSQL)
+
+1. Go to [https://supabase.com](https://supabase.com)
+2. Create new project (free tier available)
+3. Get PostgreSQL connection string from Settings
+4. Update backend database code
 
 ## Security Checklist
 
-- [ ] Change JWT_SECRET to a secure random string
-- [ ] Use HTTPS URLs (should be automatic with Railway/Vercel)
-- [ ] Environment variables not committed to Git
-- [ ] CORS properly configured for your domain
-- [ ] Add rate limiting for production
-- [ ] Consider adding authentication to admin endpoints
+- [ ] Use a secure JWT_SECRET (minimum 32 characters, random)
+- [ ] Set `FRONTEND_URL` to your actual Vercel domain
+- [ ] Use HTTPS URLs only
+- [ ] Do not commit environment variables to GitHub
+- [ ] Review CORS settings in `server.ts`
+- [ ] Plan database migration for production
 
 ## Next Steps
 
-1. Deploy backend to Railway
-2. Deploy frontend to Vercel with correct API URL
-3. Test end-to-end flow
-4. Monitor logs for any issues
-5. Plan database migration if needed
-6. Set up monitoring/alerts
+1. Deploy backend to Render
+2. Deploy frontend to Vercel
+3. Add Vercel URL to Render's `FRONTEND_URL`
+4. Test end-to-end flow (register, login, etc.)
+5. Monitor logs for any issues
+6. Plan database migration if needed
+7. Upgrade to paid tiers when ready
 
 ## Support
 
-If you encounter issues:
+- **Render issues**: Check Render docs at [docs.render.com](https://docs.render.com)
+- **Vercel issues**: Check Vercel docs at [vercel.com/docs](https://vercel.com/docs)
+- **CORS issues**: Check browser DevTools → Network tab for actual requests
+- **Backend logs**: Check Render dashboard → Logs for debugging
+```
 
-1. Check Railway logs for backend errors
-2. Check Vercel deployment logs
-3. Use browser DevTools → Network tab to see actual API requests
-4. Check if API URL matches between environment variables and actual requests
+Now I'll create a quick deployment summary:

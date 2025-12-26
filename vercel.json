@@ -1,11 +1,6 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "framework": "nextjs",
-  "env": {
-    "VITE_API_URL": {
-      "description": "Backend API URL for production",
-      "required": false
-    }
-  }
+  "framework": "nextjs"
+
 }

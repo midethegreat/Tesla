@@ -1,6 +1,5 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs"
-
+  "framework": "vite",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist"
 }

@@ -3,7 +3,7 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": {
+    "VITE_API_URL": {
       "description": "Backend API URL for production",
       "required": false
     }

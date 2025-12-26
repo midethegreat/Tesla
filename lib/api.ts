@@ -1,159 +1,113 @@
 export async function apiRequest(endpoint: string, options?: RequestInit) {
-  const token = localStorage.getItem("authToken");
-
+  const token = localStorage.getItem("authToken")
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(options?.headers || {}),
-  };
+    ...options?.headers,
+  }
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`
   }
 
   try {
-    // ✅ Vite environment variable
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-    const fullUrl = endpoint.startsWith("http")
-      ? endpoint
-      : `${baseUrl}${endpoint}`;
-
-    console.log("[api] Request:", fullUrl);
-
-    const response = await fetch(fullUrl, {
+    console.log("[v0] Making API request to:", endpoint)
+    const response = await fetch(endpoint, {
       ...options,
       headers,
       credentials: "include",
-    });
+    })
 
     if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-
+      let error: string
       try {
-        const data = await response.json();
-        errorMessage = data?.error || errorMessage;
+        const data = await response.json()
+        error = data.error || `HTTP ${response.status}: ${response.statusText}`
       } catch {
-        // ignore JSON parse errors
+        error = `HTTP ${response.status}: ${response.statusText}`
       }
-
-      console.error("[api] Error Response:", errorMessage);
-      throw new Error(errorMessage);
+      console.error("[v0] API Error Response:", error)
+      throw new Error(error)
     }
 
-    return response.json();
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-
-    console.error("[api] Request Failed:", message);
-
-    if (error instanceof TypeError && message.toLowerCase().includes("fetch")) {
-      throw new Error(
-        "Failed to connect to server. Make sure the backend is running."
-      );
+    return response.json()
+  } catch (error: any) {
+    console.error("[v0] API Request Failed:", error.message)
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error("Failed to connect to server. Make sure the backend is running on port 5000.")
     }
-
-    throw error;
+    throw error
   }
 }
 
-/* ===================== AUTH API ===================== */
-
 export const authAPI = {
   register: (data: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    country: string;
-  }) =>
-    apiRequest("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    country: string
+  }) => apiRequest("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
   login: (email: string, password: string) =>
-    apiRequest("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    }),
+    apiRequest("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 
   verifyEmail: (userId: string, token: string) =>
-    apiRequest("/api/auth/verify-email", {
-      method: "POST",
-      body: JSON.stringify({ userId, token }),
-    }),
+    apiRequest("/api/auth/verify-email", { method: "POST", body: JSON.stringify({ userId, token }) }),
 
   getCurrentUser: () => apiRequest("/api/auth/me"),
-};
+}
 
-/* ===================== DOCUMENTS API ===================== */
-
+// Documents API
 export const documentsAPI = {
   upload: (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formData = new FormData()
+    formData.append("file", file)
+    const token = localStorage.getItem("authToken")
+    const headers: HeadersInit = {}
+    if (token) headers.Authorization = `Bearer ${token}`
 
-    const token = localStorage.getItem("authToken");
-    const headers: HeadersInit = {};
-
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    return fetch(`${import.meta.env.VITE_API_URL}/api/documents/upload`, {
+    return fetch("/api/documents/upload", {
       method: "POST",
       headers,
       body: formData,
-      credentials: "include",
-    }).then((res) => (res.ok ? res.json() : Promise.reject(res)));
+    }).then((res) => (res.ok ? res.json() : Promise.reject(res)))
   },
 
   getDocuments: () => apiRequest("/api/documents"),
 
-  deleteDocument: (id: string) =>
-    apiRequest(`/api/documents/${id}`, { method: "DELETE" }),
-};
+  deleteDocument: (id: string) => apiRequest(`/api/documents/${id}`, { method: "DELETE" }),
+}
 
-/* ===================== PROFILE API ===================== */
-
+// Profile API
 export const profileAPI = {
   uploadImage: (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formData = new FormData()
+    formData.append("file", file)
+    const token = localStorage.getItem("authToken")
+    const headers: HeadersInit = {}
+    if (token) headers.Authorization = `Bearer ${token}`
 
-    const token = localStorage.getItem("authToken");
-    const headers: HeadersInit = {};
-
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    return fetch(`${import.meta.env.VITE_API_URL}/api/profile/image`, {
+    return fetch("/api/profile/image", {
       method: "POST",
       headers,
       body: formData,
-      credentials: "include",
-    }).then((res) => (res.ok ? res.json() : Promise.reject(res)));
+    }).then((res) => (res.ok ? res.json() : Promise.reject(res)))
   },
 
   getImage: () => apiRequest("/api/profile/image"),
 
-  updateProfile: (data: {
-    firstName: string;
-    lastName: string;
-    country: string;
-  }) =>
-    apiRequest("/api/profile", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
-};
+  updateProfile: (data: { firstName: string; lastName: string; country: string }) =>
+    apiRequest("/api/profile", { method: "PUT", body: JSON.stringify(data) }),
+}
 
-/* ===================== ADMIN API ===================== */
-
+// Admin API
 export const adminAPI = {
   getAllUploads: () => apiRequest("/api/admin/uploads"),
+
   getAllUsers: () => apiRequest("/api/admin/users"),
-};
+}
 
-/* ===================== UPDATES API ===================== */
-
+// Updates API
 export const updatesAPI = {
   getUpdates: () => apiRequest("/api/updates"),
-};
+}

@@ -13,7 +13,6 @@ import {
   Settings,
   Bell,
   ChevronDown,
-  Home,
   FileText as FileTextIcon,
   Shield,
   LayoutDashboard,

@@ -1,12 +1,10 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import {
-  LogOut,
   Users,
   FileText,
   BarChart3,
   Shield,
-  Activity,
   TrendingUp,
   Globe,
 } from "lucide-react";
@@ -14,36 +12,13 @@ import {
 import AdminUsers from "./AdminUsers";
 import AdminKYC from "./AdminKYC";
 import AdminAnalytics from "./AdminAnalytics";
-import { useAdminAuth } from "@/hooks/dashboard/useAdminAuth";
 import { useAdminDashboard } from "@/hooks/dashboard/useAdminDashboard";
-import { adminService } from "@/services/admin.service";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"users" | "kyc" | "analytics">(
     "users"
   );
-  const [user, setUser] = useState<any>(null);
-  const { stats, loading, refetch } = useAdminDashboard();
-  const { logout } = useAdminAuth();
-
- useEffect(() => {
-   const fetchUser = async () => {
-     const currentUser = await adminService.getAdminUser();
-     setUser(currentUser);
-   };
-
-   fetchUser();
- }, []);
-
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  const handleRefresh = () => {
-    refetch();
-  };
-
-  const isSuperAdmin = user?.role === "SUPERADMIN";
+  const { stats, loading } = useAdminDashboard();
 
   return (
     <div className="space-y-6">
